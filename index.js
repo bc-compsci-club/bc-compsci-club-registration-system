@@ -11,7 +11,7 @@ const db = admin.firestore();
 
 mailchimp.setConfig({
   apiKey: process.env.MAILCHIMP_API_KEY,
-  server: 'us17'
+  server: process.env.MAILCHIMP_SERVER
 });
 
 /**
