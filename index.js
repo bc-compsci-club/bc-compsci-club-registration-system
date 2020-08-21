@@ -4,7 +4,6 @@ const { Sequelize } = require("sequelize");
 const sanitize = require("mongo-sanitize");
 const { v4: uuidv4 } = require("uuid");
 const md5 = require("md5");
-const { Sequelize } = require("sequelize");
 
 // Initialize Cloud Firestore
 admin.initializeApp({
