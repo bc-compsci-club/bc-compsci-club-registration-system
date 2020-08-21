@@ -1,6 +1,6 @@
 const admin = require("firebase-admin");
 const mailchimp = require("@mailchimp/mailchimp_marketing");
-const { Sequelize } = require("sequelize");
+const { Sequelize, DataTypes } = require("sequelize");
 const sanitize = require("mongo-sanitize");
 const { v4: uuidv4 } = require("uuid");
 const md5 = require("md5");
@@ -96,19 +96,19 @@ exports.handleJoin = async (req, res) => {
   // Define the model
   const Member = sequelize.define("Member", {
     firstName: {
-      type: sequelize.DataTypes.STRING,
+      type: DataTypes.STRING,
       allowNull: false,
     },
     lastName: {
-      type: sequelize.DataTypes.STRING,
+      type: DataTypes.STRING,
       allowNull: false,
     },
     email: {
-      type: sequelize.DataTypes.STRING,
+      type: DataTypes.STRING,
       allowNull: false,
     },
     joinDate: {
-      type: sequelize.DataTypes.TIME,
+      type: DataTypes.TIME,
       allowNull: false,
     },
   });
