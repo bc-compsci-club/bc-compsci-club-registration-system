@@ -1,6 +1,6 @@
 const admin = require("firebase-admin");
 const mailchimp = require("@mailchimp/mailchimp_marketing");
-const sequelize = require("sequelize");
+const { Sequelize } = require("sequelize");
 const sanitize = require("mongo-sanitize");
 const { v4: uuidv4 } = require("uuid");
 const md5 = require("md5");
