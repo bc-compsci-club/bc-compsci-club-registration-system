@@ -1,6 +1,6 @@
 # bccompsci.club handleJoin
 
-The handleJoin Google Cloud Function for handling member join requests. Stores member join requests on MySQL and Google Cloud Firestore.
+The handleJoin Google Cloud Function for handling member join requests. Stores new member data on MySQL and Google Cloud Firestore.
 
 ## Environment Variables
 
