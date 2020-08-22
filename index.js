@@ -121,7 +121,7 @@ exports.handleJoin = async (req, res) => {
     await sequelize.authenticate();
     console.log("Connected to MySQL Database");
 
-    await Member.create({
+    await member.create({
       firstName: firstName,
       lastName: lastName,
       email: email,
