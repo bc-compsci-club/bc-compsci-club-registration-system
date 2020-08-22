@@ -97,7 +97,7 @@ exports.handleJoin = async (req, res) => {
 
   // MySQL database
   // Define the model
-  const Member = sequelize.define("Member", {
+  const member = sequelize.define("member", {
     firstName: {
       type: DataTypes.STRING,
       allowNull: false,
