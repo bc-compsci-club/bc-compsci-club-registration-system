@@ -10,5 +10,5 @@ The handleJoin Google Cloud Function for handling member join requests. Stores n
 **DB_SOCKET:** The UNIX socket of the MySQL database to connect to.\
 **DB_PORT:** The port of the MySQL database to connect to.\
 **DB_USERNAME:** The username of the MySQL database user to connect with.\
-**DB_PASSWORD:** The password of the MySQL database user to connect with.
-**DB_DATABASE:** The database to use in the MySQL database.\
+**DB_PASSWORD:** The password of the MySQL database user to connect with.\
+**DB_DATABASE:** The database to use in the MySQL database.
