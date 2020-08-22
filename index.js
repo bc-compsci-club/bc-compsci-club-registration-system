@@ -5,12 +5,6 @@ const sanitize = require("mongo-sanitize");
 const { v4: uuidv4 } = require("uuid");
 const md5 = require("md5");
 
-// Initialize Cloud Firestore
-admin.initializeApp({
-  credential: admin.credential.applicationDefault(),
-});
-const db = admin.firestore();
-
 // Initialize MySQL
 const sequelize = new Sequelize({
   dialect: "mysql",
@@ -18,12 +12,18 @@ const sequelize = new Sequelize({
     socketPath: process.env.DB_SOCKET,
   },
   port: process.env.DB_PORT,
-  database: process.env.DB_DATABASE,
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
 });
 
-// Initialize Mailchimp
+// Initialize Cloud Firestore
+admin.initializeApp({
+  credential: admin.credential.applicationDefault(),
+});
+const db = admin.firestore();
+
+// Initialize Mailchimp API
 mailchimp.setConfig({
   apiKey: process.env.MAILCHIMP_API_KEY,
   server: process.env.MAILCHIMP_SERVER,
@@ -38,22 +38,22 @@ mailchimp.setConfig({
  *                     More info: https://expressjs.com/en/api.html#res
  */
 exports.handleJoin = async (req, res) => {
-  // Check for requests other than POST
+  // Check for requests other than POST and reject them
   if (req.method !== "POST") {
     console.error("Invalid request type!");
     res.status(405).send("Method Not Allowed");
     return;
   }
 
-  // Check for correct referer
-  // if (
-  //   !(req.get("referer").substring(0, 27) === "https://bccompsci.club/join")
-  // ) {
-  //   console.error("Incorrect referer!");
-  //   console.log("Referer: " + req.get("referer"));
-  //   res.status(403).send("Forbidden");
-  //   return;
-  // }
+  // Check for correct referer and reject if it isn't from the official website
+  if (
+    !(req.get("referer").substring(0, 27) === "https://bccompsci.club/join")
+  ) {
+    console.error("Incorrect referer!");
+    console.log("Referer: " + req.get("referer"));
+    res.status(403).send("Forbidden");
+    return;
+  }
 
   // Sanitize and parse inputs
   const body = req.body;
@@ -82,21 +82,8 @@ exports.handleJoin = async (req, res) => {
     return;
   }
 
-  // Cloud Firestore database
-  // Generate unique document ID
-  const docId = `${firstName} ${lastName} ${email} ${uuidv4()}`;
-  const docRef = db.collection("members").doc(docId);
-
-  // Add the member
-  await docRef.set({
-    firstName: firstName,
-    lastName: lastName,
-    email: email,
-    joinDate: new Date(),
-  });
-
   // MySQL database
-  // Define the model
+  // Define the sequelize model
   const member = sequelize.define("member", {
     firstName: {
       type: DataTypes.STRING,
@@ -116,7 +103,7 @@ exports.handleJoin = async (req, res) => {
     },
   });
 
-  // Connect and add the member
+  // Connect and add the member to the MySQL database
   try {
     await sequelize.authenticate();
     console.log("Connected to MySQL Database");
@@ -132,6 +119,19 @@ exports.handleJoin = async (req, res) => {
     console.error(`Unable to connect to MySQL Database. Reason: ${error}`);
   }
 
+  // Cloud Firestore database
+  // Generate unique document ID
+  const docId = `${firstName} ${lastName} ${email} ${uuidv4()}`;
+  const docRef = db.collection("members").doc(docId);
+
+  // Add the member to the Cloud Firestore database
+  await docRef.set({
+    firstName: firstName,
+    lastName: lastName,
+    email: email,
+    joinDate: new Date(),
+  });
+
   console.log(
     `${firstName} ${lastName} has joined the club with email ${email}.`
   );
@@ -140,8 +140,10 @@ exports.handleJoin = async (req, res) => {
   const listId = process.env.MAILCHIMP_MAILING_LIST_ID; // ID for the main mailing list.
   const subscriberHash = md5(email.toLowerCase());
 
+  // Check if member is in the mailing list and subscribe them if they aren't in the mailing list
   async function processSubscribe() {
     try {
+      // Check if the member is already in the list
       const response = await mailchimp.lists.getListMember(
         listId,
         subscriberHash
@@ -151,11 +153,13 @@ exports.handleJoin = async (req, res) => {
         `The subscription status for the email "${email}" is ${response.status}.`
       );
     } catch (e) {
+      // A status of 404 here means the member isn't in the mailing list
       if (e.status === 404) {
         console.log(
           `The email "${email}" is not subscribed to the mailing list. Subscribing...`
         );
 
+        // Because the member isn't in the mailing list, add the member to the mailing list
         const response = await mailchimp.lists.addListMember(listId, {
           email_address: email,
           status: "subscribed",
@@ -172,9 +176,9 @@ exports.handleJoin = async (req, res) => {
     }
   }
 
-  // Subscribe the member
+  // Subscribe the member to the Mailchimp mailing list
   await processSubscribe();
 
-  // Redirect to welcome page
+  // Redirect to welcome page after adding to the database and subscribing
   res.redirect("https://bccompsci.club/welcome");
 };
