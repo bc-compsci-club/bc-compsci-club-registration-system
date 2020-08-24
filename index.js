@@ -63,7 +63,7 @@ exports.handleJoin = async (req, res) => {
   const email = sanitize(body["email"]);
 
   console.log(
-    `${firstName} ${lastName} is requesting to join the club with email ${email}.`
+    `${firstName} ${lastName} is requesting to join the club with email ${email}`
   );
 
   // Validate data before adding to database
@@ -83,6 +83,8 @@ exports.handleJoin = async (req, res) => {
   }
 
   // MySQL database
+  console.log("Step 1: Add member to MySQL database");
+
   // Define the sequelize model
   const member = sequelize.define("member", {
     firstName: {
@@ -105,38 +107,55 @@ exports.handleJoin = async (req, res) => {
 
   // Connect and add the member to the MySQL database
   try {
+    // Connect to the MySQL database
+    console.log("Connecting to the MySQL database...");
     await sequelize.authenticate();
-    console.log("Connected to MySQL Database");
+    console.log("Successfully connected to MySQL database.");
 
+    // Add member
+    console.log("Adding member to the MySQL database...");
     await member.create({
       firstName: firstName,
       lastName: lastName,
       email: email,
       joinDate: new Date(),
     });
-    console.log("Added new member to MySQL Database.");
+    console.log("Successfully added member to MySQL database.");
+
+    // Close connection
+    console.log("Cleaning up and closing MySQL database connection...");
+    await sequelize.connectionManager.close();
+    console.log("Successfully closed MySQL database connection.");
   } catch (error) {
-    console.error(`Unable to connect to MySQL Database. Reason: ${error}`);
+    console.error(`Unable to add user to the MySQL database. Reason: ${error}`);
   }
 
   // Cloud Firestore database
+  console.log("Step 2: Add member to Cloud Firestore database");
+
   // Generate unique document ID
   const docId = `${firstName} ${lastName} ${email} ${uuidv4()}`;
   const docRef = db.collection("members").doc(docId);
 
   // Add the member to the Cloud Firestore database
-  await docRef.set({
-    firstName: firstName,
-    lastName: lastName,
-    email: email,
-    joinDate: new Date(),
-  });
+  try {
+    console.log("Adding member to the Cloud Firestore database...");
+    await docRef.set({
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      joinDate: new Date(),
+    });
+    console.log("Successfully added member to the Cloud Firestore database.");
+  } catch (error) {
+    console.error(
+      `Unable to add user to the Cloud Firestore database. Reason: ${error}`
+    );
+  }
 
-  console.log(
-    `${firstName} ${lastName} has joined the club with email ${email}.`
-  );
+  console.log("Step 3: Subscribe member to Mailchimp mailing list");
 
-  // Mailchimp API
+  // Prepare the Mailchimp API
   const listId = process.env.MAILCHIMP_MAILING_LIST_ID; // ID for the main mailing list.
   const subscriberHash = md5(email.toLowerCase());
 
@@ -160,24 +179,45 @@ exports.handleJoin = async (req, res) => {
         );
 
         // Because the member isn't in the mailing list, add the member to the mailing list
-        const response = await mailchimp.lists.addListMember(listId, {
-          email_address: email,
-          status: "subscribed",
-          merge_fields: {
-            FNAME: firstName,
-            LNAME: lastName,
-          },
-        });
+        try {
+          const response = await mailchimp.lists.addListMember(listId, {
+            email_address: email,
+            status: "subscribed",
+            merge_fields: {
+              FNAME: firstName,
+              LNAME: lastName,
+            },
+          });
 
-        console.log(
-          `Successfully subscribed member to the club newsletter! The contact's id is ${response.id}.`
-        );
+          console.log(
+            `Successfully subscribed member to the mailing list! The contact's id is ${response.id}.`
+          );
+        } catch (error) {
+          console.error(
+            `Unable to subscribe member to the mailing list. Reason: ${error}`
+          );
+        }
       }
     }
   }
 
   // Subscribe the member to the Mailchimp mailing list
-  await processSubscribe();
+  try {
+    console.log("Subscribing the member to the Mailchimp mailing list...");
+    await processSubscribe();
+    console.log("Mailchimp mailing list subscription complete.");
+  } catch (e) {
+    console.error(
+      "There was an error subscribing the member to the mailing list."
+    );
+  }
+
+  console.log(
+    `${firstName} ${lastName} has joined the club with email ${email}`
+  );
+  console.log(
+    "Member registration complete! Redirecting member to the welcome page..."
+  );
 
   // Redirect to welcome page after adding to the database and subscribing
   res.redirect("https://bccompsci.club/welcome");
