@@ -83,6 +83,8 @@ exports.handleJoin = async (req, res) => {
   }
 
   // MySQL database
+  console.log("\nStep 1: Add member to MySQL database\n");
+
   // Define the sequelize model
   const member = sequelize.define("member", {
     firstName: {
@@ -129,6 +131,8 @@ exports.handleJoin = async (req, res) => {
   }
 
   // Cloud Firestore database
+  console.log("\nStep 2: Add member to MySQL database\n");
+
   // Generate unique document ID
   const docId = `${firstName} ${lastName} ${email} ${uuidv4()}`;
   const docRef = db.collection("members").doc(docId);
@@ -149,9 +153,7 @@ exports.handleJoin = async (req, res) => {
     );
   }
 
-  console.log(
-    `${firstName} ${lastName} has joined the club with email ${email}.`
-  );
+  console.log("\nStep 3: Subscribe member to Mailchimp mailing list\n");
 
   // Prepare the Mailchimp API
   const listId = process.env.MAILCHIMP_MAILING_LIST_ID; // ID for the main mailing list.
@@ -210,6 +212,9 @@ exports.handleJoin = async (req, res) => {
     );
   }
 
+  console.log(
+    `\n${firstName} ${lastName} has joined the club with email ${email}`
+  );
   console.log(
     "Member registration complete! Redirecting member to the welcome page..."
   );
