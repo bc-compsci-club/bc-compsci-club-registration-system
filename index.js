@@ -112,7 +112,7 @@ exports.handleJoin = async (req, res) => {
     await sequelize.authenticate();
     console.log("Successfully connected to MySQL database.");
 
-    // Check if the user is already in the database
+    // Check if the member's email is already in the database
     const queryResult = await member.findAll({
       where: {
         email: email,
@@ -120,7 +120,7 @@ exports.handleJoin = async (req, res) => {
     });
 
     if (queryResult.length === 0) {
-      // Add member if the user isn't already in the database
+      // Add member if the member's email isn't already in the database
       console.log("Adding member to the MySQL database...");
       await member.create({
         firstName: firstName,
@@ -155,13 +155,12 @@ exports.handleJoin = async (req, res) => {
 
   // Add the member to the Cloud Firestore database
   try {
-    // Check if the member is already in Cloud Firestore
-    // Get email first
+    // Check if the member's email is already in Cloud Firestore
     const firestoreQueryResult = await collectionRef
       .where("email", "==", email)
       .get();
     if (firestoreQueryResult.empty) {
-      // Member's email doesn't exist
+      // Add member to Cloud Firestore
       console.log("Adding member to the Cloud Firestore database...");
       await docRef.set({
         firstName: firstName,
