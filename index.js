@@ -137,7 +137,7 @@ exports.handleJoin = async (req, res) => {
 
     // Close connection
     console.log("Cleaning up and closing MySQL database connection...");
-    await sequelize.connectionManager.close();
+    await sequelize.close();
     console.log("Successfully closed MySQL database connection.");
   } catch (error) {
     console.error(`Unable to add user to the MySQL database. Reason: ${error}`);
