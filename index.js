@@ -65,15 +65,18 @@ exports.handleJoin = async (req, res) => {
     return;
   }
 
-  // Check for correct referer and reject if it isn't from the official website
-  if (
-    !(req.get("referer").substring(0, 27) === "https://bccompsci.club/join")
-  ) {
-    console.error("Incorrect referer!");
-    console.log("Referer: " + req.get("referer"));
-    res.status(403).send("Forbidden");
-    return;
-  }
+  // Disable in development
+  /*
+    // Check for correct referer and reject if it isn't from the official website
+    if (
+      !(req.get("referer").substring(0, 27) === "https://bccompsci.club/join")
+    ) {
+      console.error("Incorrect referer!");
+      console.log("Referer: " + req.get("referer"));
+      res.status(403).send("Forbidden");
+      return;
+    }
+  */
 
   // Sanitize and parse inputs
   const body = req.body;
