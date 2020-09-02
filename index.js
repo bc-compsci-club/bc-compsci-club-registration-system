@@ -137,11 +137,6 @@ exports.handleJoin = async (req, res) => {
         `The member ${firstName} ${lastName} with email ${email} is already registered!`
       );
     }
-
-    // Close connection
-    // console.log("Cleaning up and closing MySQL database connection...");
-    // await sequelize.close();
-    // console.log("Successfully closed MySQL database connection.");
   } catch (error) {
     console.error(`Unable to add user to the MySQL database. Reason: ${error}`);
   }
