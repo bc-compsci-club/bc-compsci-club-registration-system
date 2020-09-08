@@ -58,13 +58,6 @@ mailchimp.setConfig({
  *                     More info: https://expressjs.com/en/api.html#res
  */
 exports.handleJoin = async (req, res) => {
-  // Check for requests other than POST and reject them
-  if (req.method !== "POST") {
-    console.error("Invalid request type!");
-    res.status(405).send("Method Not Allowed");
-    return;
-  }
-
   // Sanitize and parse inputs
   const body = req.body;
 
@@ -76,6 +69,17 @@ exports.handleJoin = async (req, res) => {
     `${firstName} ${lastName} is requesting to join the club with email ${email}`
   );
 
+  // Check for requests other than POST and reject them
+  if (req.method !== "POST") {
+    console.error("Invalid request type!");
+    res
+      .status(405)
+      .send(
+        "There seems to have been an issue on our side while registering you for the club! Please try again! If that still doesn't work, please send us an email at contact@bccompsci.club so we can register you."
+      );
+    return;
+  }
+
   // Check for correct referer and reject if it isn't from the official website
   if (
     !(
@@ -85,7 +89,11 @@ exports.handleJoin = async (req, res) => {
   ) {
     console.error("Incorrect referer!");
     console.log("Referer: " + req.get("referer"));
-    res.status(403).send("Forbidden");
+    res
+      .status(403)
+      .send(
+        "There seems to have been an issue on our side while registering you for the club! Please try again! If that still doesn't work, please send us an email at contact@bccompsci.club so we can register you."
+      );
     return;
   }
 
@@ -101,7 +109,11 @@ exports.handleJoin = async (req, res) => {
     typeof email !== "string"
   ) {
     console.error("Form data invalid!");
-    res.status(400).send("Bad Request");
+    res
+      .status(400)
+      .send(
+        "There seems to have been an issue on our side while registering you for the club! Please try again! If that still doesn't work, please send us an email at contact@bccompsci.club so we can register you."
+      );
     return;
   }
 
