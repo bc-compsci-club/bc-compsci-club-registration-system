@@ -83,25 +83,17 @@ exports.handleJoin = async (req, res) => {
   console.log(req.get("referer").substring(0, 22));
   console.log(req.get("referer").substring(0, 22) === "https://bccompsci.club");
 
-  console.log(req.get("referer").substring(0, 23));
-  console.log(
-    req.get("referer").substring(0, 23) === "https://bccompsci.club/"
-  );
-
-  // // Check for correct referer and reject if it isn't from the official website
-  // if (
-  //   !(req.get("referer").substring(0, 22) === "https://bccompsci.club/join") ||
-  //   !(req.get("referer").substring(0, 23) === "https://bccompsci.club/join/")
-  // ) {
-  //   console.error("Incorrect referer!");
-  //   console.log("Referer: " + req.get("referer"));
-  //   res
-  //     .status(403)
-  //     .send(
-  //       "There seems to have been an issue on our side while registering you for the club! Please try again! If that still doesn't work, please send us an email at contact@bccompsci.club so we can register you."
-  //     );
-  //   return;
-  // }
+  // Check for correct referer and reject if it isn't from the official website
+  if (!(req.get("referer").substring(0, 22) === "https://bccompsci.club")) {
+    console.error("Incorrect referer!");
+    console.log("Referer: " + req.get("referer"));
+    res
+      .status(403)
+      .send(
+        "There seems to have been an issue on our side while registering you for the club! Please try again! If that still doesn't work, please send us an email at contact@bccompsci.club so we can register you."
+      );
+    return;
+  }
 
   // Validate data before adding to database
   if (
