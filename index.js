@@ -65,16 +65,6 @@ exports.handleJoin = async (req, res) => {
     return;
   }
 
-  // Check for correct referer and reject if it isn't from the official website
-  if (
-    !(req.get("referer").substring(0, 27) === "https://bccompsci.club/join")
-  ) {
-    console.error("Incorrect referer!");
-    console.log("Referer: " + req.get("referer"));
-    res.status(403).send("Forbidden");
-    return;
-  }
-
   // Sanitize and parse inputs
   const body = req.body;
 
@@ -85,6 +75,19 @@ exports.handleJoin = async (req, res) => {
   console.log(
     `${firstName} ${lastName} is requesting to join the club with email ${email}`
   );
+
+  // Check for correct referer and reject if it isn't from the official website
+  if (
+    !(
+      req.get("referer").substring(0, 27) === "https://bccompsci.club/join" ||
+      req.get("referer").substring(0, 28) === "https://bccompsci.club/join/"
+    )
+  ) {
+    console.error("Incorrect referer!");
+    console.log("Referer: " + req.get("referer"));
+    res.status(403).send("Forbidden");
+    return;
+  }
 
   // Validate data before adding to database
   if (
