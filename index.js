@@ -80,9 +80,12 @@ exports.handleJoin = async (req, res) => {
     return;
   }
 
+  console.log(req.get("referer").substring(0, 22));
   console.log(
     req.get("referer").substring(0, 22) === "https://bccompsci.club/join"
   );
+
+  console.log(req.get("referer").substring(0, 23));
   console.log(
     req.get("referer").substring(0, 23) === "https://bccompsci.club/join/"
   );
