@@ -81,13 +81,11 @@ exports.handleJoin = async (req, res) => {
   }
 
   console.log(req.get("referer").substring(0, 22));
-  console.log(
-    req.get("referer").substring(0, 22) === "https://bccompsci.club/join"
-  );
+  console.log(req.get("referer").substring(0, 22) === "https://bccompsci.club");
 
   console.log(req.get("referer").substring(0, 23));
   console.log(
-    req.get("referer").substring(0, 23) === "https://bccompsci.club/join/"
+    req.get("referer").substring(0, 23) === "https://bccompsci.club/"
   );
 
   // // Check for correct referer and reject if it isn't from the official website
