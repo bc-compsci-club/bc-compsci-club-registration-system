@@ -17,6 +17,26 @@ const sequelize = new Sequelize({
   database: process.env.DB_DATABASE,
 });
 
+// Define the sequelize model
+const member = sequelize.define("member", {
+  firstName: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  lastName: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  joinDate: {
+    type: DataTypes.TIME,
+    allowNull: false,
+  },
+});
+
 // Initialize Cloud Firestore
 admin.initializeApp({
   credential: admin.credential.applicationDefault(),
@@ -38,23 +58,6 @@ mailchimp.setConfig({
  *                     More info: https://expressjs.com/en/api.html#res
  */
 exports.handleJoin = async (req, res) => {
-  // Check for requests other than POST and reject them
-  if (req.method !== "POST") {
-    console.error("Invalid request type!");
-    res.status(405).send("Method Not Allowed");
-    return;
-  }
-
-  // Check for correct referer and reject if it isn't from the official website
-  if (
-    !(req.get("referer").substring(0, 27) === "https://bccompsci.club/join")
-  ) {
-    console.error("Incorrect referer!");
-    console.log("Referer: " + req.get("referer"));
-    res.status(403).send("Forbidden");
-    return;
-  }
-
   // Sanitize and parse inputs
   const body = req.body;
 
@@ -65,6 +68,29 @@ exports.handleJoin = async (req, res) => {
   console.log(
     `${firstName} ${lastName} is requesting to join the club with email ${email}`
   );
+
+  // Check for requests other than POST and reject them
+  if (req.method !== "POST") {
+    console.error("Invalid request type!");
+    res
+      .status(405)
+      .send(
+        "There seems to have been an issue on our side while registering you for the club! Please try again! If that still doesn't work, please send us an email at contact@bccompsci.club so we can register you."
+      );
+    return;
+  }
+
+  // Check for correct referer and reject if it isn't from the official website
+  if (!(req.get("referer").substring(0, 22) === "https://bccompsci.club")) {
+    console.error("Incorrect referer!");
+    console.log("Referer: " + req.get("referer"));
+    res
+      .status(403)
+      .send(
+        "There seems to have been an issue on our side while registering you for the club! Please try again! If that still doesn't work, please send us an email at contact@bccompsci.club so we can register you."
+      );
+    return;
+  }
 
   // Validate data before adding to database
   if (
@@ -78,32 +104,16 @@ exports.handleJoin = async (req, res) => {
     typeof email !== "string"
   ) {
     console.error("Form data invalid!");
-    res.status(400).send("Bad Request");
+    res
+      .status(400)
+      .send(
+        "There seems to have been an issue on our side while registering you for the club! Please try again! If that still doesn't work, please send us an email at contact@bccompsci.club so we can register you."
+      );
     return;
   }
 
   // MySQL database
   console.log("Step 1: Add member to MySQL database");
-
-  // Define the sequelize model
-  const member = sequelize.define("member", {
-    firstName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    lastName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    joinDate: {
-      type: DataTypes.TIME,
-      allowNull: false,
-    },
-  });
 
   // Connect and add the member to the MySQL database
   try {
@@ -112,20 +122,28 @@ exports.handleJoin = async (req, res) => {
     await sequelize.authenticate();
     console.log("Successfully connected to MySQL database.");
 
-    // Add member
-    console.log("Adding member to the MySQL database...");
-    await member.create({
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
-      joinDate: new Date(),
+    // Check if the member's email is already in the database
+    const queryResult = await member.findAll({
+      where: {
+        email: email,
+      },
     });
-    console.log("Successfully added member to MySQL database.");
 
-    // Close connection
-    console.log("Cleaning up and closing MySQL database connection...");
-    await sequelize.connectionManager.close();
-    console.log("Successfully closed MySQL database connection.");
+    if (queryResult.length === 0) {
+      // Add member if the member's email isn't already in the database
+      console.log("Adding member to the MySQL database...");
+      await member.create({
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        joinDate: new Date(),
+      });
+      console.log("Successfully added member to MySQL database.");
+    } else {
+      console.warn(
+        `The member ${firstName} ${lastName} with email ${email} is already registered!`
+      );
+    }
   } catch (error) {
     console.error(`Unable to add user to the MySQL database. Reason: ${error}`);
   }
@@ -133,20 +151,34 @@ exports.handleJoin = async (req, res) => {
   // Cloud Firestore database
   console.log("Step 2: Add member to Cloud Firestore database");
 
+  // The Cloud Firestore members collection
+  const collectionRef = db.collection("members");
+
   // Generate unique document ID
   const docId = `${firstName} ${lastName} ${email} ${uuidv4()}`;
-  const docRef = db.collection("members").doc(docId);
+  const docRef = collectionRef.doc(docId);
 
   // Add the member to the Cloud Firestore database
   try {
-    console.log("Adding member to the Cloud Firestore database...");
-    await docRef.set({
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
-      joinDate: new Date(),
-    });
-    console.log("Successfully added member to the Cloud Firestore database.");
+    // Check if the member's email is already in Cloud Firestore
+    const firestoreQueryResult = await collectionRef
+      .where("email", "==", email)
+      .get();
+    if (firestoreQueryResult.empty) {
+      // Add member to Cloud Firestore
+      console.log("Adding member to the Cloud Firestore database...");
+      await docRef.set({
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        joinDate: new Date(),
+      });
+      console.log("Successfully added member to the Cloud Firestore database.");
+    } else {
+      console.warn(
+        `The member ${firstName} ${lastName} with email ${email} is already registered!`
+      );
+    }
   } catch (error) {
     console.error(
       `Unable to add user to the Cloud Firestore database. Reason: ${error}`
