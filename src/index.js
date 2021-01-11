@@ -32,6 +32,8 @@ mailchimp.setConfig({
   server: process.env.MAILCHIMP_SERVER,
 });
 
+const errorMessage = `There seems to have been an issue on our side while registering you for the club! Please try again! If that still doesn't work, please send us an email at contact@bccompsci.club so we can register you.`;
+
 /**
  * HTTP Cloud Function.
  *
@@ -41,37 +43,19 @@ mailchimp.setConfig({
  *                     More info: https://expressjs.com/en/api.html#res
  */
 exports.handleJoin = async (req, res) => {
-  // Sanitize and parse inputs
-  const body = req.body;
-
-  const firstName = sanitize(body["first-name"]);
-  const lastName = sanitize(body["last-name"]);
-  const email = sanitize(body["email"]);
-
-  console.log(
-    `${firstName} ${lastName} is requesting to join the club with email ${email}`
-  );
-
-  // Check for requests other than POST and reject them
-  if (req.method !== "POST") {
-    console.error("Invalid request type!");
-    res
-      .status(405)
-      .send(
-        "There seems to have been an issue on our side while registering you for the club! Please try again! If that still doesn't work, please send us an email at contact@bccompsci.club so we can register you."
-      );
+  // Accept only POST methods
+  // https://cloud.google.com/functions/docs/writing/http#handling_http_methods
+  if (req.method !== 'POST') {
+    console.error('Invalid request type!');
+    res.status(405).send(errorMessage);
     return;
   }
 
   // Check for correct referer and reject if it isn't from the official website
-  if (!(req.get("referer").substring(0, 22) === "https://bccompsci.club")) {
-    console.error("Incorrect referer!");
-    console.log("Referer: " + req.get("referer"));
-    res
-      .status(403)
-      .send(
-        "There seems to have been an issue on our side while registering you for the club! Please try again! If that still doesn't work, please send us an email at contact@bccompsci.club so we can register you."
-      );
+  if (!(req.get('referer').substring(0, 22) === 'https://bccompsci.club')) {
+    console.error('Incorrect referer!');
+    console.log('Referer: ' + req.get('referer'));
+    res.status(403).send(errorMessage);
     return;
   }
 
