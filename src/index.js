@@ -1,9 +1,10 @@
-const admin = require("firebase-admin");
-const mailchimp = require("@mailchimp/mailchimp_marketing");
-const { Sequelize, DataTypes } = require("sequelize");
-const sanitize = require("mongo-sanitize");
-const { v4: uuidv4 } = require("uuid");
-const md5 = require("md5");
+const admin = require('firebase-admin');
+const mailchimp = require('@mailchimp/mailchimp_marketing');
+const { Sequelize } = require('sequelize');
+const sanitize = require('mongo-sanitize');
+const { v4: uuidv4 } = require('uuid');
+const md5 = require('md5');
+const emailValidator = require('email-validator');
 
 const { member } = require('models/member.model');
 
@@ -74,23 +75,21 @@ exports.handleJoin = async (req, res) => {
     return;
   }
 
-  // Validate data before adding to database
-  if (
-    // Validate form data
-    firstName === "" ||
-    lastName === "" ||
-    !email.includes("@") ||
-    // Validate data types
-    typeof firstName !== "string" ||
-    typeof lastName !== "string" ||
-    typeof email !== "string"
-  ) {
-    console.error("Form data invalid!");
-    res
-      .status(400)
-      .send(
-        "There seems to have been an issue on our side while registering you for the club! Please try again! If that still doesn't work, please send us an email at contact@bccompsci.club so we can register you."
-      );
+  const body = req.body;
+
+  // Sanitize and parse inputs
+  const firstName = sanitize(body['first-name']);
+  const lastName = sanitize(body['last-name']);
+  const email = sanitize(body['email']);
+
+  console.log(
+    `${firstName} ${lastName} is requesting to join the club with email ${email}`
+  );
+
+  // Validate email address form before adding to database
+  if (!emailValidator.validate(email)) {
+    console.error('Invalid form data!');
+    res.status(400).send(errorMessage);
     return;
   }
 
