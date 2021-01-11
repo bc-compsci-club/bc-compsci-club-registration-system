@@ -7,7 +7,7 @@ const md5 = require("md5");
 
 // Initialize MySQL
 const sequelize = new Sequelize({
-  dialect: "mysql",
+  dialect: process.env.DB_DIALECT,
   dialectOptions: {
     socketPath: process.env.DB_SOCKET,
   },
