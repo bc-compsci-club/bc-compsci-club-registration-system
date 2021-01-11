@@ -5,7 +5,9 @@ const sanitize = require("mongo-sanitize");
 const { v4: uuidv4 } = require("uuid");
 const md5 = require("md5");
 
-// Initialize MySQL
+const { member } = require('models/member.model');
+
+// Initialize SQL database
 const sequelize = new Sequelize({
   dialect: process.env.DB_DIALECT,
   dialectOptions: {
@@ -15,26 +17,6 @@ const sequelize = new Sequelize({
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
-});
-
-// Define the sequelize model
-const member = sequelize.define("member", {
-  firstName: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  lastName: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  email: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  joinDate: {
-    type: DataTypes.TIME,
-    allowNull: false,
-  },
 });
 
 // Initialize Cloud Firestore
