@@ -32,7 +32,7 @@ mailchimp.setConfig({
   server: process.env.MAILCHIMP_SERVER,
 });
 
-const errorMessage = `There seems to have been an issue on our side while registering you for the club! Please try again! If that still doesn't work, please send us an email at contact@bccompsci.club so we can register you.`;
+const errorMessage = `There seems to have been an issue on our side while registering you for the club! Please try again! If that still doesn't work, please send us an email at contact@bccompsci.club so we can register you manually.`;
 
 /**
  * HTTP Cloud Function. Powered by Node.js and Express.
@@ -73,8 +73,12 @@ exports.handleJoin = async (req, res) => {
 
   // Validate email address form before adding to database
   if (!emailValidator.validate(email)) {
-    console.error('Invalid form data!');
-    res.status(400).send(errorMessage);
+    console.error('Invalid email address!');
+    res
+      .status(400)
+      .send(
+        `The email address you entered is invalid. Please try again. If that doesn't work, please send us an email at contact@bccompsci.club so we can register you manually.`
+      );
     return;
   }
 
