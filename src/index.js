@@ -35,7 +35,8 @@ mailchimp.setConfig({
 const errorMessage = `There seems to have been an issue on our side while registering you for the club! Please try again! If that still doesn't work, please send us an email at contact@bccompsci.club so we can register you.`;
 
 /**
- * HTTP Cloud Function.
+ * HTTP Cloud Function. Powered by Node.js and Express.
+ * https://cloud.google.com/functions/docs/writing/http#http_frameworks
  *
  * @param {Object} req Cloud Function request context.
  *                     More info: https://expressjs.com/en/api.html#req
