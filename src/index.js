@@ -78,14 +78,14 @@ exports.handleJoin = async (req, res) => {
   }
 
   // MySQL database
-  console.log("Step 1: Add member to MySQL database");
+  console.log('Step 1: Add member to MySQL database');
 
   // Connect and add the member to the MySQL database
   try {
     // Connect to the MySQL database
-    console.log("Connecting to the MySQL database...");
+    console.log('Connecting to the MySQL database...');
     await sequelize.authenticate();
-    console.log("Successfully connected to MySQL database.");
+    console.log('Successfully connected to MySQL database.');
 
     // Check if the member's email is already in the database
     const queryResult = await member.findAll({
@@ -96,14 +96,14 @@ exports.handleJoin = async (req, res) => {
 
     if (queryResult.length === 0) {
       // Add member if the member's email isn't already in the database
-      console.log("Adding member to the MySQL database...");
+      console.log('Adding member to the MySQL database...');
       await member.create({
         firstName: firstName,
         lastName: lastName,
         email: email,
         joinDate: new Date(),
       });
-      console.log("Successfully added member to MySQL database.");
+      console.log('Successfully added member to MySQL database.');
     } else {
       console.warn(
         `The member ${firstName} ${lastName} with email ${email} is already registered!`
@@ -114,10 +114,10 @@ exports.handleJoin = async (req, res) => {
   }
 
   // Cloud Firestore database
-  console.log("Step 2: Add member to Cloud Firestore database");
+  console.log('Step 2: Add member to Cloud Firestore database');
 
   // The Cloud Firestore members collection
-  const collectionRef = db.collection("members");
+  const collectionRef = db.collection('members');
 
   // Generate unique document ID
   const docId = `${firstName} ${lastName} ${email} ${uuidv4()}`;
@@ -127,18 +127,18 @@ exports.handleJoin = async (req, res) => {
   try {
     // Check if the member's email is already in Cloud Firestore
     const firestoreQueryResult = await collectionRef
-      .where("email", "==", email)
+      .where('email', '==', email)
       .get();
     if (firestoreQueryResult.empty) {
       // Add member to Cloud Firestore
-      console.log("Adding member to the Cloud Firestore database...");
+      console.log('Adding member to the Cloud Firestore database...');
       await docRef.set({
         firstName: firstName,
         lastName: lastName,
         email: email,
         joinDate: new Date(),
       });
-      console.log("Successfully added member to the Cloud Firestore database.");
+      console.log('Successfully added member to the Cloud Firestore database.');
     } else {
       console.warn(
         `The member ${firstName} ${lastName} with email ${email} is already registered!`
@@ -150,7 +150,7 @@ exports.handleJoin = async (req, res) => {
     );
   }
 
-  console.log("Step 3: Subscribe member to Mailchimp mailing list");
+  console.log('Step 3: Subscribe member to Mailchimp mailing list');
 
   // Prepare the Mailchimp API
   const listId = process.env.MAILCHIMP_MAILING_LIST_ID; // ID for the main mailing list.
@@ -179,7 +179,7 @@ exports.handleJoin = async (req, res) => {
         try {
           const response = await mailchimp.lists.addListMember(listId, {
             email_address: email,
-            status: "subscribed",
+            status: 'subscribed',
             merge_fields: {
               FNAME: firstName,
               LNAME: lastName,
@@ -200,12 +200,12 @@ exports.handleJoin = async (req, res) => {
 
   // Subscribe the member to the Mailchimp mailing list
   try {
-    console.log("Subscribing the member to the Mailchimp mailing list...");
+    console.log('Subscribing the member to the Mailchimp mailing list...');
     await processSubscribe();
-    console.log("Mailchimp mailing list subscription complete.");
+    console.log('Mailchimp mailing list subscription complete.');
   } catch (e) {
     console.error(
-      "There was an error subscribing the member to the mailing list."
+      'There was an error subscribing the member to the mailing list.'
     );
   }
 
@@ -213,9 +213,9 @@ exports.handleJoin = async (req, res) => {
     `${firstName} ${lastName} has joined the club with email ${email}`
   );
   console.log(
-    "Member registration complete! Redirecting member to the welcome page..."
+    'Member registration complete! Redirecting member to the welcome page...'
   );
 
   // Redirect to welcome page after adding to the database and subscribing
-  res.redirect("https://bccompsci.club/welcome");
+  res.redirect('https://bccompsci.club/welcome');
 };
