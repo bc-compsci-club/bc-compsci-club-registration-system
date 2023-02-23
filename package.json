@@ -12,7 +12,7 @@
     "md5": "^2.3.0",
     "mongo-sanitize": "^1.1.0",
     "mysql2": "^2.1.0",
-    "sequelize": "^6.3.4",
+    "sequelize": "^6.28.2",
     "uuid": "^8.2.0"
   },
   "devDependencies": {
